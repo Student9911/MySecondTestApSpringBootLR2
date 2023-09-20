@@ -28,7 +28,7 @@ public class Request {
 
     @Range(min = 1, max = 100000,
             message = "Значение должно быть в диапазоне от 1 до 100000")
-    private String communicationId;
+    private int communicationId;
     private int templateId;
     private int productCode;
     private int smsCode;
