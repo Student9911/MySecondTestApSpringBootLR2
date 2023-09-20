@@ -7,9 +7,11 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import ru.aurakhov.mysecondtestapspringbootlr2.exception.UnsupportedCodeException;
 import ru.aurakhov.mysecondtestapspringbootlr2.exception.ValidationFailedException;
 import ru.aurakhov.mysecondtestapspringbootlr2.model.Request;
 import ru.aurakhov.mysecondtestapspringbootlr2.model.Response;
+import ru.aurakhov.mysecondtestapspringbootlr2.service.UnsupportedCodeService;
 import ru.aurakhov.mysecondtestapspringbootlr2.service.ValidationService;
 
 import javax.validation.Valid;
@@ -20,10 +22,13 @@ import java.util.Date;
 public class MyController {
 
     private final ValidationService validationService;
+    private final UnsupportedCodeService unsupportedCodeService;
 
     @Autowired
-    public MyController(ValidationService validationService) {
+    public MyController(ValidationService validationService, UnsupportedCodeService unsupportedCodeService) {
         this.validationService = validationService;
+
+        this.unsupportedCodeService = unsupportedCodeService;
     }
 
 
@@ -41,19 +46,27 @@ public class MyController {
                 .errorCode("")
                 .errorMessage("")
                 .build();
-
+        try {
+            unsupportedCodeService.isValid(request.getUid());
+        } catch (UnsupportedCodeException e) {
+            response.setCode("failed");
+            response.setErrorCode("UnsupportedCodeException");
+            response.setErrorMessage(e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
         try {
             validationService.isValid(bindingResult);
         } catch (ValidationFailedException e) {
             response.setCode("failed");
             response.setErrorCode("ValidationException");
-            response.setErrorMessage("Ошибка Валидации");
+            response.setErrorMessage("Ошибка валидации");
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             response.setCode("failed");
             response.setErrorCode("UnknownException");
             response.setErrorMessage("Произошла непредвиденная ошибка");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+
         }
 
         return new ResponseEntity<>(response, HttpStatus.OK);
