@@ -19,6 +19,7 @@ public class Request {
     @Size(max = 32)
     private String uid;
 
+    @NotBlank
     @Size(max = 32)
     private String operationUid;
     private String systemName;
